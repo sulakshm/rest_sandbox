@@ -1,22 +1,30 @@
 from django.forms import widgets
+from django.contrib.auth.models import User
 from rest_framework import serializers
 from gps.models import GpsNode, GpsNodeMetrics
 
+import pdb
 
-class GpsNodeSerializer(serializers.Serializer):
-    pk = serializers.IntegerField(read_only=True)
-    ident = serializers.CharField(required=True, allow_blank=False)
+# Serializers define the API representation.
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    #nodes = serializers.PrimaryKeyRelatedField(many=True, 
+    #              queryset=GpsNode.objects.all())
+    nodes = serializers.HyperlinkedRelatedField(many=True, 
+                view_name='gpsnode-detail', read_only=True)
+    class Meta:
+        model = User
+        fields = ('url', 'username', 'email', 'is_staff', 'nodes') 
 
-    def create(self, validated_data):
-        """
-        Create and return a new `GpsNode` instance, given the validated data.
-        """
-        return GpsNode.objects.create(**validated_data)
+class GpsNodeSerializer(serializers.HyperlinkedModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+    class Meta:
+        model = GpsNode
+        fields = ('url', 'id', 'user', 'ident', 
+                    'created', 'lastActive', 'was_active_recently')
 
-    def update(self, instance, validated_data):
-        """
-        Update and return an existing `Snippet` instance, given the validated data.
-        """
-        instance.ident = validated_data.get('ident', instance.ident)
-        instance.save()
-        return instance
+class GpsNodeMetricSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = GpsNodeMetrics
+        fields = ('url', 'id', 'vin', 'vinCached', 'latitude', 'longitude',
+                  'accuracy', 'speed', 'altitude', 'nsTimestamp', 'bearing')
+

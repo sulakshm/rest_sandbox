@@ -8,7 +8,7 @@ import datetime
 # Create your models here.
 class GpsNode(models.Model):
     """ Define a GpsNode that collects data for a user """
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, related_name='nodes')
     ident = models.CharField(max_length=48)
     created = models.DateTimeField('Created', auto_now_add=True)
     lastActive = models.DateTimeField('LastActive', auto_now=True)
